@@ -200,7 +200,7 @@ const onClickShowTodosType = (e) => {
 
     if(currentShowType === newShowType) {
         return;
-    }
+    } 
     const preBtnElem = document.querySelector(`.show-${currentShowType}-btn`);
     preBtnElem.classList.remove('selected'); //이전의 showType 버튼에 'selected' 클래스 네임을 제거 
     currentBtnEle.classList.add('selected') //새로운 showType 버튼에 'selected' 클래스 네임을 추가 
