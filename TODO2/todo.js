@@ -1,6 +1,7 @@
 const todoInput = document.querySelector('.todo-input');
 const todoList = document.querySelector('.todo-list');
 const completeAllBtnEle = document.querySelector('.complete-all-btn');
+const leftItemsElem = document.querySelector('.left-items');
 
 let todos = [];
 let id = 0;
@@ -11,6 +12,7 @@ const addTodos = (text) => {
     let newTodos = getAllTodos().concat({id: newId, isCompleted: false, content: text})
     setTodos(newTodos);
     checkIsAllCompleted();
+    setLeftItems();
     paintTodos();
 }
 
@@ -63,12 +65,14 @@ const paintTodos = () => {
 const deleteTodo = (todoId) => {
     const newTodos = getAllTodos().filter(todo => todo.id !== todoId); //주어진 함수의 테스트를 통과하는 모든 요소를 모아 새로운 배열로 반환
     setTodos(newTodos);
+    setLeftItems(); // 남은 할 일 개수 표시
     paintTodos();      
 }
 
 const completeTodo = (todoId) => {
     const newTodos = getAllTodos().map(todo => todo.id === todoId ? {...todo, isCompleted: !todo.isCompleted} : todo);
     setTodos(newTodos);
+    setLeftItems();
     paintTodos();
     checkIsAllCompleted();
 }
@@ -153,6 +157,16 @@ const getCompletedTodos = () => {
     return todos.filter(todo => todo.isCompleted === true);
 }
 
+//현재 완료되지 않은 할 일 리스트를 반환한다.
+const getActiveTodos = () => {
+    return todos.filter(todo => todo.isCompleted === false);
+}
+
+const setLeftItems = () => {
+    const leftTodos = getActiveTodos();
+    leftItemsElem.innerHTML = `${leftTodos.length} items left`
+}
+
 const init = () => {
     todoInput.addEventListener('keydown', (e) => {
         if(e.key === 'Enter') {
@@ -162,6 +176,7 @@ const init = () => {
     })
 
     completeAllBtnEle.addEventListener('click', onClickCompleteAll);
+    setLeftItems();
 }
 
 init();
