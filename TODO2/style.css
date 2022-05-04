@@ -49,10 +49,10 @@ button {
     min-height: none;
     width: 1.5rem;
     height: 1.5rem;
-    margin: 0.5rem 0.5rem;
+    margin: 0.5rem 1.3rem;
     border-radius: 50px;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
 }
 
 .complete-all-btn.checked {

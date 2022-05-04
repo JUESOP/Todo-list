@@ -1,14 +1,16 @@
 const todoInput = document.querySelector('.todo-input');
 const todoList = document.querySelector('.todo-list');
+const completeAllBtnEle = document.querySelector('.complete-all-btn');
 
 let todos = [];
 let id = 0;
 
 const addTodos = (text) => {
     let newId = id++;
-    // 새롭게 추가된 할 일을 concat()을 통해 추가된 배열을 newTodos에 저장한다
+    //새롭게 추가된 할 일을 concat()을 통해 추가된 배열을 newTodos에 저장한다
     let newTodos = getAllTodos().concat({id: newId, isCompleted: false, content: text})
     setTodos(newTodos);
+    checkIsAllCompleted();
     paintTodos();
 }
 
@@ -24,7 +26,7 @@ const paintTodos = () => {
     todoList.innerHTML = null; //todoInput 요소 안의 html 초기화
     const allTodos = getAllTodos(); // todos 배열 가져오기
 
-      // "todo-item"에 해당하는 HTML을 그려서 "todo-list"에 추가하기
+      //"todo-item"에 해당하는 HTML을 그려서 "todo-list"에 추가하기
       allTodos.forEach(todo => {
           const todoItem = document.createElement('li');
           todoItem.classList.add('todo-item');
@@ -68,6 +70,7 @@ const completeTodo = (todoId) => {
     const newTodos = getAllTodos().map(todo => todo.id === todoId ? {...todo, isCompleted: !todo.isCompleted} : todo);
     setTodos(newTodos);
     paintTodos();
+    checkIsAllCompleted();
 }
 
 const onDblcickTodo = (e, todoId) => {
@@ -85,7 +88,7 @@ const onDblcickTodo = (e, todoId) => {
       }  
     })
 
-     // todoItemEle 요소를 제외한 영역을 클릭 시, 수정모드 종료
+     //todoItemEle 요소를 제외한 영역을 클릭 시, 수정모드 종료
      const onClickBody = (e) => {
         if(e.target !== inputEle) {
             todoItemEle.removeChild(inputEle);
@@ -93,7 +96,7 @@ const onDblcickTodo = (e, todoId) => {
         }
     }
 
-    // body에 클릭에 대한 이벤트 리스너 등록
+    //body에 클릭에 대한 이벤트 리스너 등록
     document.body.addEventListener('click', onClickBody);
 
     todoItemEle.appendChild(inputEle);
@@ -105,6 +108,51 @@ const updateTodo = (text, todoId) => {
     paintTodos();
 }
 
+let isAllCompleted = false;
+const setIsAllCompleted = (bool) => {isAllCompleted = bool};
+
+const completeAll = () => {
+    completeAllBtnEle.classList.add('checked');
+    const newTodos = getAllTodos().map(todo => ({...todo, isCompleted: true}))
+    setTodos(newTodos)
+}
+
+const incompleteAll = () => {
+    completeAllBtnEle.classList.remove('checked');
+    const newTodos = getAllTodos().map(todo => ({...todo, isCompleted: false}));
+    setTodos(newTodos)
+}
+
+//전체 todos의 check 여부 (isCompleted)
+const checkIsAllCompleted = () => {
+    if(getAllTodos().length === getCompletedTodos().length) {
+        setIsAllCompleted(true);
+        completeAllBtnEle.classList.add('checked');
+    } else {
+        setIsAllCompleted(false);
+        completeAllBtnEle.classList.remove('checked');
+    }
+}
+
+const onClickCompleteAll = () => {
+    if(!getAllTodos().length) { //todos배열의 길이가 0이면 return;
+        return;
+    }
+
+    if(isAllCompleted) {
+        incompleteAll(); //isAllCompleted가 true이면 todos를 전체 미완료 처리
+    } else {
+        completeAll(); // isAllCompleted가 false이면 todos를 전체 완료 처리 
+    }
+    setIsAllCompleted(!isAllCompleted); // isAllCompleted 토글 현재는 true
+    paintTodos(); // 새로운 todos를 렌더링
+    setLeftItems();
+} 
+
+const getCompletedTodos = () => {
+    return todos.filter(todo => todo.isCompleted === true);
+}
+
 const init = () => {
     todoInput.addEventListener('keydown', (e) => {
         if(e.key === 'Enter') {
@@ -112,6 +160,8 @@ const init = () => {
             todoInput.value = '';
         }
     })
+
+    completeAllBtnEle.addEventListener('click', onClickCompleteAll);
 }
 
 init();
