@@ -1,23 +1,35 @@
-const todoInput = document.querySelector('.todo-input');
-const todoList = document.querySelector('.todo-list');
-const completeAllBtnEle = document.querySelector('.complete-all-btn');
-const leftItemsElem = document.querySelector('.left-items');
+const todoInput = document.querySelector('.todo-input'); //입력창
+const todoList = document.querySelector('.todo-list'); //입력목록
+const completeAllBtnEle = document.querySelector('.complete-all-btn'); //전체완료 버튼
+const leftItemsElem = document.querySelector('.left-items'); //남은 항목 개수
+const showAllBtnElem = document.querySelector('.show-all-btn');	//All 버튼 
+const showActiveBtnElem = document.querySelector('.show-active-btn'); //Active 버튼
+const showCompletedBtnElem = document.querySelector('.show-completed-btn'); //Completed 버튼
+const clearCompletedBtnElem = document.querySelector('.clear-completed-btn'); //Completed Clear 버튼
+
+let id = 0;
+const setId = (newId) => {id = newId};
+
+let isAllCompleted = false;
+const setIsAllCompleted = (bool) => {isAllCompleted = bool};
+
+let currentShowType = 'all';
+const setCurrentShowType = (newShowType) => currentShowType = newShowType;
 
 let todos = [];
-let id = 0;
-
-const addTodos = (text) => {
-    let newId = id++;
-    //새롭게 추가된 할 일을 concat()을 통해 추가된 배열을 newTodos에 저장한다
-    let newTodos = getAllTodos().concat({id: newId, isCompleted: false, content: text})
-    setTodos(newTodos);
-    checkIsAllCompleted();
-    setLeftItems();
-    paintTodos();
-}
-
 const setTodos = (newTodos) => { //새로 추가해줌 (기존 todos배열을 변경)
     todos = newTodos;
+}
+
+const addTodos = (text) => {
+    const newId = id + 1; // 기존에 i++ 로 작성했던 부분을 setId()를 통해 id값을 갱신하였다.
+    setId(newId)
+    //새롭게 추가된 할 일을 concat()을 통해 추가된 배열을 newTodos에 저장한다
+    const newTodos = getAllTodos().concat({id: newId, isCompleted: false, content: text})
+    setTodos(newTodos);
+    setLeftItems();
+    checkIsAllCompleted();
+    paintTodos();
 }
 
 const getAllTodos = () => {
@@ -25,41 +37,60 @@ const getAllTodos = () => {
 }
 
 const paintTodos = () => {
-    todoList.innerHTML = null; //todoInput 요소 안의 html 초기화
-    const allTodos = getAllTodos(); // todos 배열 가져오기
+    todoList.innerHTML = null;
+
+    switch (currentShowType) {
+        case 'all':
+            const allTodos = getAllTodos();
+            allTodos.forEach(todo => { paintTodo(todo);});
+            break;
+        case 'active': 
+            const activeTodos = getActiveTodos();
+            activeTodos.forEach(todo => { paintTodo(todo);});
+            break;
+        case 'completed': 
+            const completedTodos = getCompletedTodos();
+            completedTodos.forEach(todo => { paintTodo(todo);});
+            break;
+        default:
+            break;
+    }
+}
+
+const paintTodo = (todo) => {
 
       //"todo-item"에 해당하는 HTML을 그려서 "todo-list"에 추가하기
-      allTodos.forEach(todo => {
-          const todoItem = document.createElement('li');
-          todoItem.classList.add('todo-item');
+        const todoItem = document.createElement('li');
+        todoItem.classList.add('todo-item');
 
-          const checkedBox = document.createElement('div');
-          checkedBox.classList.add('checkbox');
-          checkedBox.addEventListener('click', () => completeTodo(todo.id));
+        todoItem.setAttribute('data-id', todo.id);
 
-          const todoEle = document.createElement('div');
-          todoEle.classList.add('todo');
-          todoEle.addEventListener('dblclick', (event) => onDblcickTodo(event, todo.id))
-          todoEle.innerText = todo.content;
+        const checkedBox = document.createElement('div');
+        checkedBox.classList.add('checkbox');
+        checkedBox.addEventListener('click', () => completeTodo(todo.id));
 
-          const delButton = document.createElement('button');
-          delButton.classList.add('delBtn');
-          delButton.addEventListener('click', () => {
-              deleteTodo(todo.id)
-          })
-          delButton.innerHTML = 'X';
+        const todoEle = document.createElement('div');
+        todoEle.classList.add('todo');
+        todoEle.addEventListener('dblclick', (event) => onDblclickTodo(event, todo.id))
+        todoEle.innerText = todo.content;
 
-          if(todo.isCompleted) {
-              todoItem.classList.add('checked');
-              checkedBox.innerText = '✔';
-          }
+        const delButton = document.createElement('button');
+        delButton.classList.add('delBtn');
+        delButton.addEventListener('click', () => {
+            deleteTodo(todo.id)
+        })
+        delButton.innerHTML = 'X';
 
-          todoItem.appendChild(checkedBox);
-          todoItem.appendChild(todoEle);
-          todoItem.appendChild(delButton);
+        if(todo.isCompleted) {
+            todoItem.classList.add('checked');
+            checkedBox.innerText = '✔';
+        }
 
-          todoList.appendChild(todoItem);
-      })
+        todoItem.appendChild(checkedBox);
+        todoItem.appendChild(todoEle);
+        todoItem.appendChild(delButton);
+
+        todoList.appendChild(todoItem);
 }
 
 const deleteTodo = (todoId) => {
@@ -72,19 +103,18 @@ const deleteTodo = (todoId) => {
 const completeTodo = (todoId) => {
     const newTodos = getAllTodos().map(todo => todo.id === todoId ? {...todo, isCompleted: !todo.isCompleted} : todo);
     setTodos(newTodos);
-    setLeftItems();
     paintTodos();
+    setLeftItems();
     checkIsAllCompleted();
 }
 
-const onDblcickTodo = (e, todoId) => {
+const onDblclickTodo = (e, todoId) => {
     const todoEle = e.target;
     const inputText = e.target.innerText;
     const todoItemEle = todoEle.parentNode;
     const inputEle = document.createElement('input');
     inputEle.value = inputText;
     inputEle.classList.add('edit-input');
-
     inputEle.addEventListener('keydown', (e) => {
       if(e.key === 'Enter') {
           updateTodo(e.target.value, todoId);
@@ -111,9 +141,6 @@ const updateTodo = (text, todoId) => {
     setTodos(newTodos);
     paintTodos();
 }
-
-let isAllCompleted = false;
-const setIsAllCompleted = (bool) => {isAllCompleted = bool};
 
 const completeAll = () => {
     completeAllBtnEle.classList.add('checked');
@@ -167,6 +194,26 @@ const setLeftItems = () => {
     leftItemsElem.innerHTML = `${leftTodos.length} items left`
 }
 
+const onClickShowTodosType = (e) => {
+    const currentBtnEle = e.target;
+    const newShowType = currentBtnEle.dataset.type;
+
+    if(currentShowType === newShowType) {
+        return;
+    }
+    const preBtnElem = document.querySelector(`.show-${currentShowType}-btn`);
+    preBtnElem.classList.remove('selected'); //이전의 showType 버튼에 'selected' 클래스 네임을 제거 
+    currentBtnEle.classList.add('selected') //새로운 showType 버튼에 'selected' 클래스 네임을 추가 
+    setCurrentShowType(newShowType) //setCurrentShowType()함수를 사용하여, currentShowType을 변경
+    paintTodos();
+}
+
+const clearCompletedTodos = () => {
+    const newTodos = getActiveTodos();
+    setTodos(newTodos)
+    paintTodos();
+}
+
 const init = () => {
     todoInput.addEventListener('keydown', (e) => {
         if(e.key === 'Enter') {
@@ -175,6 +222,10 @@ const init = () => {
         }
     })
 
+    showAllBtnElem.addEventListener('click', onClickShowTodosType);
+    showActiveBtnElem.addEventListener('click', onClickShowTodosType);
+    showCompletedBtnElem.addEventListener('click', onClickShowTodosType);
+    clearCompletedBtnElem.addEventListener('click', clearCompletedTodos);
     completeAllBtnEle.addEventListener('click', onClickCompleteAll);
     setLeftItems();
 }
